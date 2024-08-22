@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="jp">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Rokori (incomplete)</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='15' y='5' width='70' height='90' rx='5' ry='5' fill='%238B5D33' stroke='%23663300' stroke-width='2'/%3E%3Crect x='22' y='12' width='56' height='75' fill='%23FFFFFF' stroke='%23000000' stroke-width='1'/%3E%3Ctext x='50' y='63' font-size='50' text-anchor='middle' fill='%23000000'%3E%EA%B0%95%3C/text%3E%3C/svg%3E">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <style>
+        body {
+            background-color: #2C2C2C;
+            color: white;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .post-it {
+            width: 80%;
+            margin: 10px auto;
+            border-radius: 8px;
+            background-color: #424242;
+            color: #ffffff;
+            padding: 10px;
+            position: relative;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-height: 100%;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            white-space: normal;
+            word-break: break-all;
+        }
+
+        .post-it .close {
+            position: absolute;
+            top: 0;
+            right: 0;
+            cursor: pointer;
+            color: #ffffff;
+            display: none;
+        }
+
+        .post-it:hover .close {
+            display: block;
+        }
+
+        #post-it-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toast {
+            background-color: #424242 !important;
+            color: white !important;
+            border-radius: 8px !important;
+            display: inline-block;
+            text-align: center;
+        }
+
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            border-radius: 8px;
+            transform: translateX(-50%);
+            z-index: 1050;
+        }
+
+        .d-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .custom-control {
+            flex: 1;
+            font-size: 16px;
+            text-align: left;
+            color: #ffffff;
+        }
+
+        #Hn-En {
+            flex: 1;
+            text-align: right;
+            font-size: 14px;
+            color: #ffffff;
+        }
+
+        #InputMethod {
+            flex: 1;
+            text-align: center;
+            color: #a6ff00;
+        }
+
+        .btn {
+            margin: 5px;
+            width: 23%;
+            height: 3rem;
+        }
+
+        #delete-btn {
+            color: white;
+        }
+
+        #delete-btn:hover {
+            color: white;
+        }
+
+        #text-input {
+            background-color: #424242;
+            color: #ffffff;
+            height: auto;
+            resize: none;
+            overflow-y: hidden;
+            border: 2px solid white;
+            transition: border-color 0.3s;
+        }
+
+        #text-input.composing {
+            border-color: orange;
+        }
+
+        #text-input.empty {
+            border-color: white;
+        }
+
+        #text-input.goOn {
+            border-color: skyblue;
+        }
+
+        #text-input.copied {
+            border-color: limegreen;
+        }
+
+        #text-input.rainbow {
+            border: 2px solid;
+            border-image: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet) 1;
+            animation: rainbow-border 5s linear infinite;
+        }
+
+        @keyframes rainbow-border {
+            0% {
+                border-image-source: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
+            }
+
+            14.29% {
+                border-image-source: linear-gradient(to right, orange, yellow, green, blue, indigo, violet, red);
+            }
+
+            28.57% {
+                border-image-source: linear-gradient(to right, yellow, green, blue, indigo, violet, red, orange);
+            }
+
+            42.86% {
+                border-image-source: linear-gradient(to right, green, blue, indigo, violet, red, orange, yellow);
+            }
+
+            57.14% {
+                border-image-source: linear-gradient(to right, blue, indigo, violet, red, orange, yellow, green);
+            }
+
+            71.43% {
+                border-image-source: linear-gradient(to right, indigo, violet, red, orange, yellow, green, blue);
+            }
+
+            85.71% {
+                border-image-source: linear-gradient(to right, violet, red, orange, yellow, green, blue, indigo);
+            }
+
+            100% {
+                border-image-source: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
+            }
+        }
+
+        .text-center {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: nowrap;
+        }
+
+        .header {
+            background-color: #333;
+            color: #ffffff;
+            padding: 5px 0;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out 1 both;
+            transition: opacity 2s;
+            opacity: 0;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+        }
+
+        .container {
+            animation: fadeIn 0.5s ease-in-out 1 both;
+        }
+
+        footer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 5%;
+            width: 50%;
+            margin: auto;
+            text-align: center;
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        .fade-out {
+            animation: fadeOut 0.5s ease-in-out forwards;
+        }
+
+        @media (max-width: 1290px) {
+            .container {
+                width: 90%;
+                margin: 0 auto;
+            }
+
+            .btn {
+                width: 48%;
+                font-size: 14px;
+            }
+
+            .header {
+                font-size: 20px;
+                padding: 10px 0;
+            }
+
+            #text-input {
+                height: auto;
+            }
+
+            footer {
+                font-size: 12px;
+                bottom: 2%;
+                z-index: -1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header fade-in">Rokori (incomplete)</div>
+
+    <div class="container mt-3">
+        <textarea id="text-input" class="form-control" rows="4" style="resize: none; width: 100%;"></textarea>
+        <div class="d-flex justify-content-between align-items-center">
+            <!-- 추가 예정 기능 -->
+            <!--
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="mode-switch">
+                <label class="custom-control-label" for="mode-switch">Mode Switch</label>
+            </div>
+            <div id="InputMethod" style="font-size: 14px;">KS X 5002</div>
+            <div id="Hn-En" style="font-size: 14px;">한</div>
+            -->
+        </div>
+        <div class="text-center">
+            <button id="delete-btn" class="btn btn-primary mt-2">クリア</button>
+            <button id="copy-btn" class="btn btn-success mt-2">コピー</button>
+        </div>
+    </div>
+    <div id="post-it-container"></div>
+    <div id="toast-container"></div>
+    <footer class="container mt-4 text-muted">
+        D5 Kan<br>
+        github.com/Hyonimix<br>
+        CC-BY-NC-ND
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="transformer.js"></script>
+    <script>
+        $(document).ready(function () {
+            // 헤더 페이드인
+            $('.header').addClass('visible');
+
+            // 창 크기가 변경될 때 텍스트박스 높이 재조정
+            $(window).resize(function () {
+                const $textInput = $('#text-input');
+                $textInput[0].style.height = 'auto';
+                if ($textInput[0].scrollHeight > $textInput[0].clientHeight) {
+                    $textInput[0].style.height = $textInput[0].scrollHeight + 'px';
+                }
+            });
+
+            // 입력 이벤트 핸들러
+            $('#text-input').on('input', function () {
+                if (isComposing) return;
+
+                const $textInput = $(this);
+                let text = $textInput.val();
+
+                $textInput.removeClass('empty goOn copied rainbow');
+                if (!isComposing) $textInput.removeClass('composing');
+
+                if (isComposing) {
+                    $textInput.addClass('composing');
+                } else if (text === '') {
+                    $textInput.addClass('empty');
+                } else if (text === lastCopiedText) {
+                    $textInput.addClass('goOn');
+                }
+
+                // 현재 textInput 스타일 상태 저장
+                $textInput.data('prevState', $textInput.attr('class'));
+            });
+
+            // 일본어 입력 조합 상태 추적
+            $('#text-input').on('compositionstart', function () {
+                isComposing = true;
+                $(this).addClass('composing');
+                $(this).removeClass('empty goOn copied');
+            });
+
+            $('#text-input').on('compositionend', function () {
+                isComposing = false;
+                $(this).addClass('goOn');
+                $(this).removeClass('empty composing copied');
+                $(this).trigger('input');
+            });
+
+            let isComposing = false;
+            let transformedText = '';
+
+            // 전각 문자를 반각 문자로 변환
+            function toHalfWidth(text) {
+                return text.replace(/[\uFF01-\uFF5E]/g, function (ch) {
+                    return String.fromCharCode(ch.charCodeAt(0) - 0xFEE0);
+                }).replace(/[\u3000]/g, ' ');
+            }
+
+            // 로마지 한글 변환
+            function transformAndReplaceText() {
+                const $textInput = $('#text-input');
+
+                let text = toHalfWidth($textInput.val()).toLowerCase();
+                const cursorPosition = $textInput.prop("selectionStart");
+
+                let newText = text.slice(transformedText.length);
+                let words = newText.split(' ');
+                let transformedWords = words.map(word => {
+                    let transformedWord = transformRomajiToHangul(word.trim());
+                    return transformedWord !== null ? transformedWord : word;
+                });
+                let transformedResult = transformedWords.join(' ');
+
+                transformedText = text.substring(0, transformedText.length) + transformedResult;
+                $textInput.val(transformedText);
+                $textInput.prop("selectionStart", cursorPosition);
+                $textInput.prop("selectionEnd", cursorPosition);
+            }
+
+            // 스페이스바 입력 트리거
+            $('#text-input').keydown(function (event) {
+                const $textInput = $(this);
+                let text = $textInput.val();
+                const cursorPosition = $textInput.prop("selectionStart");
+
+                if (event.which === 32) {
+                    let newText = text.slice(transformedText.length);
+                    if (newText.trim()) {
+                        event.preventDefault();
+                        transformAndReplaceText();
+                    } else {
+                        transformedText += ' ';
+                    }
+                } else if (event.which === 8) {
+                    if (cursorPosition > 0) {
+                        event.preventDefault();
+                        text = text.slice(0, cursorPosition - 1) + text.slice(cursorPosition);
+                        transformedText = transformedText.slice(0, cursorPosition - 1) + transformedText.slice(cursorPosition);
+                        $textInput.val(text);
+                        $textInput.prop("selectionStart", cursorPosition - 1);
+                        $textInput.prop("selectionEnd", cursorPosition - 1);
+                    }
+                }
+            });
+
+            $('#text-input').on('compositionstart', function () {
+                isComposing = true;
+                $(this).removeClass('invalid');
+            });
+
+            $('#text-input').on('compositionend', function () {
+                isComposing = false;
+                transformAndReplaceText();
+            });
+
+            $('#delete-btn').click(function () {
+                $('#text-input').val('').removeClass('invalid');
+                transformedText = '';
+            });
+
+            $('#copy-btn').click(function () {
+                const text = $('#text-input').val();
+                if (text) {
+                    navigator.clipboard.writeText(text);
+                    showToast('テキストがコピーされました');
+                }
+            });
+
+            function transformRomajiToHangul(romaji) {
+                for (let item of transformDB) {
+                    if (item.romaji === romaji) {
+                        return item.hangul;
+                    }
+                }
+                return null;
+            }
+
+            // 엔터 키를 누를 때 복사 버튼 클릭 이벤트 트리거
+            $('#text-input').keydown(function (event) {
+                if (event.which === 13) {
+                    event.preventDefault();
+                    $('#copy-btn').click();
+                }
+            });
+
+            // ESC 키 입력으로 클리어 버튼 클릭 이벤트 트리거
+            $(document).keydown(function (event) {
+                const $textInput = $('#text-input');
+                if (event.key === 'Escape' && !isComposing) {
+                    $('#delete-btn').click();
+                }
+            });
+
+            // 복사 기능
+            let lastCopiedText = '';
+
+            function copyToClipboard(text) {
+                if (text && (text !== lastCopiedText || postItClicked)) {
+                    const tempInput = $('<input>');
+                    $('body').append(tempInput);
+                    tempInput.val(text).select();
+                    document.execCommand('copy');
+                    tempInput.remove();
+                    showToast("テキストがコピーされました");
+                    const $textInput = $('#text-input');
+                    $textInput.addClass('copied');
+
+                    // 토스트가 닫힐 때 클래스를 이전 상태로 복원
+                    $('#toast-container .toast').on('hidden.bs.toast', function () {
+                        const $textInput = $('#text-input');
+                        $textInput.removeClass('empty goOn copied rainbow').addClass('empty');
+                    });
+                }
+            }
+            // 토스트 알림
+            function showToast(message) {
+                const toastHTML = `
+                    <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000" style="background-color: #424242; color: white; border-radius: 8px;">
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                    </div>`;
+                const $toast = $(toastHTML);
+                $('#toast-container').append($toast);
+
+                // 토스트가 보일 때
+                $toast.on('shown.bs.toast', function () {
+                    //푸터 숨기기
+                    $('footer').addClass('fade-out');
+                });
+
+                // 토스트가 숨겨질 때
+                $toast.on('hidden.bs.toast', function () {
+                    $(this).remove();
+
+                    //푸터 숨기기 해제
+                    if ($('#toast-container .toast').length === 0) {
+                        $('footer').removeClass('fade-out');
+                    }
+                });
+
+                // 토스트 알림 표시
+                $toast.toast('show');
+            }
+
+            // 비우기 버튼 클릭
+            $('#delete-btn').click(function () {
+                // 현재 상태 저장
+                const $textInput = $('#text-input');
+                const prevState = $textInput.attr('class');
+
+                // 텍스트박스 비우기
+                $textInput.val('');
+                const text = $textInput.val();
+                const byteCount = new Blob([text]).size;
+                $textInput[0].style.height = 'auto';
+                $textInput.removeClass('composing goOn copied');
+                $textInput.addClass('empty');
+                if (isPC) {
+                    $textInput.focus();
+                }
+
+                // 이전 상태 복원
+                $textInput.removeClass('empty goOn copied rainbow');
+            });
+
+            // 복사 버튼 클릭
+            $('#copy-btn').click(function () {
+
+            });
+
+            // 텍스트박스의 포커스 유지
+            $('#text-input').blur(function () {
+                setTimeout(function () {
+                    if (!$('#text-input').is(':focus')) {
+                        $('#text-input').focus();
+                    }
+                }, 100);
+            });
+
+            const observer = new MutationObserver(checkOverlap);
+            observer.observe(postItContainer, { childList: true });
+
+            window.addEventListener('scroll', checkOverlap);
+            window.addEventListener('resize', checkOverlap);
+
+            checkOverlap();
+        });
+    </script>
+</body>
+
+</html>
