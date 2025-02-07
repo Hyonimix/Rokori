@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Rokori (incomplete)</title>
+    <title>Rokori (Test Build)</title>
     <link rel="icon"
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='15' y='5' width='70' height='90' rx='5' ry='5' fill='%238B5D33' stroke='%23663300' stroke-width='2'/%3E%3Crect x='22' y='12' width='56' height='75' fill='%23FFFFFF' stroke='%23000000' stroke-width='1'/%3E%3Ctext x='50' y='63' font-size='50' text-anchor='middle' fill='%23000000'%3E%EA%B0%95%3C/text%3E%3C/svg%3E">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -275,7 +275,7 @@
 
 <body>
 
-    <div class="header fade-in">Rokori (incomplete)</div>
+    <div class="header fade-in">Rokori (Test Build)</div>
 
     <div class="container mt-3">
         <textarea id="text-input" class="form-control" rows="4" style="resize: none; width: 100%;"></textarea>
@@ -453,12 +453,24 @@
                 }
             });
 
-            // ESC 키 입력으로 클리어 버튼 클릭 이벤트 트리거
-            $(document).keydown(function (event) {
-                const $textInput = $('#text-input');
-                if (event.key === 'Escape' && !isComposing) {
-                    $('#delete-btn').click();
-                }
+            // ESC 키 2회 입력으로 클리어 버튼 클릭 이벤트 트리거
+            $(document).ready(function () {
+                let escPressedOnce = false;
+            
+                $(document).keydown(function (event) {
+                    const $textInput = $('#text-input');
+                    
+                    if (event.key === 'Escape' && !isComposing) {
+                        if (escPressedOnce) {
+                            $('#delete-btn').click();
+                            escPressedOnce = false; // 상태 초기화
+                        } else {
+                            escPressedOnce = true;
+                        }
+                    } else {
+                        escPressedOnce = false; // ESC 외 다른 키가 눌리면 상태 초기화
+                    }
+                });
             });
 
             // 복사 기능
